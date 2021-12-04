@@ -11,7 +11,7 @@ The HPRC YR1 sample selection was designed to find representative candidates of 
 
 Genotype - [genotyping of 1KG](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/). Only autosomes are retained. 
 
-Phenotype - [1KG sample info (spreadsheet)](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.xlsx). Specifically, we used the following fields of tab `Sample Info`: Sample, Family ID, Population, Gender (`20130606_sample_info.xlsx`).
+Phenotype - [1KG sample info (spreadsheet)](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/working/20130606_sample_info/20130606_sample_info.xlsx) (`20130606_sample_info.xlsx`).
 
 Auxiliary - subpopulation and superpopulation relationships from IGSR (`pheno_superpopulation.tsv`).
 
@@ -23,7 +23,7 @@ Auxiliary - [trio existing data](https://docs.google.com/spreadsheets/d/1MJHYIqk
 
 Auxiliary - previous sequencing project (`prevSeqProj.txt`)
 
-The above mentioned files and some reformatted ones are available in the `input` folder, except for the vcfs. 
+The above mentioned files and some reformatted ones are available in the `input` folder, except for the vcf files. 
 
 ## Pipeline output
 
@@ -53,7 +53,6 @@ def normalize(C):
     # C is matrix of shape (nb_samples, nb_features)
     u = np.mean(C, axis=0,keepdims=True)
     p = u/2
-    print(p)
     M = (C - u)/(p*(1-p))**0.5
     return M
 ```
@@ -88,14 +87,14 @@ The top-ranked samples in step3 should show up close to the center of each subpo
 note that step3 is done in the feature space, not the 2D representations.
 
 We also do another sanity check by estimating heterozygosity of parents and children. 
-Briefly, for parent samplers where genotyping is available, 
+Briefly, for samples where genotyping is available (i.e. the parents), 
 we count heterozygous loci and divide the count by the total number of loci.
 To infer heterozygosity for a child sample, we use the expectation to heterozygous loci counts. 
 For example, we count 0.5 when parental genotypes are (a,a) and (a,b).
 
 ### Step 3: candidate selection
 
-1. Ranking samples. We try to find the most representative sample of a subpopulation by `argmax(i) (10*Dist(i, p, X[p]) - 1*Dist(i, ^p, X[^p]))`, where:
+1. Ranking samples. We would try to find the most representative sample of a subpopulation by `argmax(i) (10*Dist(i, p, X[p]) - 1*Dist(i, ^p, X[^p]))`, where:
 
 - `i` is the sample ID
 
@@ -107,7 +106,7 @@ For example, we count 0.5 when parental genotypes are (a,a) and (a,b).
 
 - `argmax(i)` finds the i that maximizes the target function
 
-- `Dist(i, p, mat)` gives the average of the pairwise distance between `i` and all other data points in `mat`, normalized by `len(p)`. `i` must be in `mat`.
+- `Dist(i, p, mat)` gives the average of the pairwise distance between `i` and all other data points in `mat`, normalized by `len(p)`.
 
 The implementation: 
 
@@ -136,6 +135,8 @@ for pheno in phenos:
 
 2. Ranking children of the trios:
 a child is ranked as `best(parental_rank, maternal_rank)`.
+Note that this might be ambiguous if samples of a trio have different subpopulation labels,
+which was not an issue for the cohort we used here.
 
 3. Apply the cell line optimal passage requirement:
 remove candidates that are not `expansion==0` and `freeze_passage==2` in the `Coriell_Sample_List_072919.xls` data sheet.
@@ -145,9 +146,9 @@ We have 274 trios (822 samples) from 13 subpopulations after filtering.
 4. Remove candidates with existing or ongoing sequencing efforts.
 
 5. Selection: ideally, we would like to select the same number of candidates from each subpopulation, and have equal 
-number of candidates from both genders. This could not be achieved and thus we have additional manual interventions: 
+number of candidates from both genders. We applied the following manual interventions: 
 1) when gender is unbalanced (i.e. off by more than 1), try to swap in the next-best candidate of the less represented gender; do nothing if this is not possible.
-2) if a subpopulation has less individuals than the desired sample selection size, their unused slots will be distributed to other unsaturated subpopulations. The latter choice is arbitrary and should have little impact on the overall results.
+2) if a subpopulation has less individuals than the desired sample selection size (i.e. all candidates are selected), their unused slots will be distributed to other unsaturated subpopulations. The latter choice is arbitrary but should have little impact on the overall results.
 
 ## Side notes as of 2021
 
