@@ -147,8 +147,10 @@ We have 274 trios (822 samples) from 13 subpopulations after filtering.
 
 5. Selection: ideally, we would like to select the same number of candidates from each subpopulation, and have equal 
 number of candidates from both genders. We applied the following manual interventions: 
-1) when gender is unbalanced (i.e. off by more than 1), try to swap in the next-best candidate of the less represented gender; do nothing if this is not possible.
-2) if a subpopulation has less individuals than the desired sample selection size (i.e. all candidates are selected), their unused slots will be distributed to other unsaturated subpopulations. The latter choice is arbitrary but should have little impact on the overall results.
+
+- when gender is unbalanced (i.e. off by more than 1), try to swap in the next-best candidate of the less represented gender; do nothing if this is not possible.
+
+- if a subpopulation has less individuals than the desired sample selection size (i.e. all candidates are selected), their unused slots will be distributed to other unsaturated subpopulations. The latter choice is arbitrary but should have little impact on the overall results.
 
 ## Side notes as of 2021
 
