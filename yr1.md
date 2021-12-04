@@ -23,7 +23,7 @@ Auxiliary - [trio existing data](https://docs.google.com/spreadsheets/d/1MJHYIqk
 
 Auxiliary - previous sequencing projetc (`prevSeqProj.txt`)
 
-The above mentioned files and some reformatted ones are also available in the `input` folder, except for the vcfs. 
+The above mentioned files and some reformatted ones are available in the `input` folder, except for the vcfs. 
 
 ## Pipeline output
 
@@ -41,7 +41,7 @@ Do:
 
 1. data lines of the input vcf file are retained if the MAF is at least 0.05. MAF is calculated as `min(AF, 1-AF)` where `AF` is extracted from the "AF" field of the vcf `INFO` field. Since 1KG phase 3 release's vcf files each contains all 2504 samples, the denominator of `AF` is the whole cohort. String to float convertion is python's `float()`.
 
-1. if a data line passes the MAF requirement, it is converted to a integer array of length N. Each entry is calculated as the following: if the minor allele is REF, let the value be `genotype.count('0')`; otherwise, `2-genotype.count('0')`. To determine whether the minor allele is REF: true if `all_genotypes.count('0') < 2*N/2`, false otherwise.
+2. if a data line passes the MAF requirement, it is converted to a integer array of length N. Each entry is calculated as the following: if the minor allele is REF, let the value be `genotype.count('0')`; otherwise, `2-genotype.count('0')`. To determine whether the minor allele is REF: true if `all_genotypes.count('0') < 2*N/2`, false otherwise.
 
 ### Step 2: dimension reduction
 
@@ -65,7 +65,7 @@ from sklearn.decomposition import PCA
 PCA(n_components=100, svd_solver='arpack')
 ```
 
-1. The feature matrices are concatenated to one matrix of shape (N, 2200) and is further reduced to (N, 100):
+2. The feature matrices are concatenated to one matrix of shape (N, 2200) and is further reduced to (N, 100):
 
 ```
 PCA(n_components=100, svd_solver='full', random_state=0)
@@ -73,7 +73,7 @@ PCA(n_components=100, svd_solver='full', random_state=0)
 
 The choice of solver and random states should have little impact on the final results.
 
-1. As a sanity check, we can do a scatter plot using the first two dimensions of this features, or do a tSNE to visualize:
+3. As a sanity check, we can do a scatter plot using the first two dimensions of this features, or do a tSNE to visualize:
 
 ```
 from sklearn.manifold import TSNE
@@ -134,24 +134,22 @@ for pheno in phenos:
     ## then argsort the sample IDs using `result_scores` to get the ranked samples.
 ```
 
-1. Ranking children of the trios:
+2. Ranking children of the trios:
 a child is ranked as `best(parental_rank, maternal_rank)`.
 
-1. Apply the cell line optimal passage requirement:
+3. Apply the cell line optimal passage requirement:
 remove candidates that are not `expansion==0` and `freeze_passage==2` in the `Coriell_Sample_List_072919.xls` data sheet.
 If `freeze_passage` is empty, it is treated as N/A and dropped. 
 We have 274 trios (822 samples) from 13 subpopulations after filtering. 
 
-1. Remove candidates with existing or ongoing sequencing efforts.
+4. Remove candidates with existing or ongoing sequencing efforts.
 
-1. Selection: ideally, we would like to select the same number of candidates from each subpopulation, and have equal 
-number of candidates from both gender. This could not be achieved and thus we have additional manual interventions:
-
+5. Selection: ideally, we would like to select the same number of candidates from each subpopulation, and have equal 
+number of candidates from both gender. This could not be achieved and thus we have additional manual interventions: 
 1) when gender is unbalance (i.e. off by more than 1), try to swap in the next-best candidate of the less represented gender; do nothing if this is not possible.
-
 2) if a subpopluation has less individuals than the desired sample selection size, their unused slots will be distributed to other unsaturated subpopulations. The later choice is arbitrary and should have little impact to the overall results.
 
-## Side note as of 2021
+## Side notes as of 2021
 
 1. The sample selection was done and maintained using the n=2504 1KG release; [the newer set that expanded the collection to 3202 samples](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/) was not considered here.
 
